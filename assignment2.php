@@ -98,11 +98,14 @@
   table.matrix td.max  { background: #dcfce7; color: #166534; }
   table.matrix td.neg  { color: var(--bad); }
 
-  /* Q5 status */
+  /* Q5 status badges */
   .pass, .fail { display: inline-block; padding: 3px 12px; border-radius: 999px; color: #fff; font-weight: 600; font-size: .9rem; }
-  .pass { background: var(--good); }
-  .fail { background: var(--bad); }
-  tr.failrow td:not(.sem) { background: #fef2f2 !important; }
+  .pass { background: var(--good); }                          /* Pass badge = green */
+  .fail { background: var(--bad); border: 2px solid #fff; }   /* Fail badge = red */
+
+  /* Q5 row colors */
+  .nice tr.lowrow td:not(.sem) { background: yellow !important; }                 /* total 50-59 */
+  .nice tr.redrow td:not(.sem) { background: #ef4444 !important; color: #fff; }   /* total below 50 */
 
   footer { text-align: center; color: var(--muted); padding-bottom: 30px; font-size: .9rem; }
 </style>
@@ -301,7 +304,7 @@ $transcript = [
     "Semester 2" => [
         ["Course" => "subject1", "CW1" => 9, "MidTerm" => 26, "CW2" => 10, "Final" => 0,  "Total" => 45, "Status" => "Fail"],
         ["Course" => "subject2", "CW1" => 9, "MidTerm" => 26, "CW2" => 10, "Final" => 40, "Total" => 85, "Status" => "Pass"],
-        ["Course" => "subject3", "CW1" => 9, "MidTerm" => 26, "CW2" => 10, "Final" => 40, "Total" => 85, "Status" => "Pass"],
+        ["Course" => "subject3", "CW1" => 9, "MidTerm" => 26, "CW2" => 10, "Final" => 10, "Total" => 55, "Status" => "Pass"],
     ],
 ];
 
@@ -310,7 +313,14 @@ echo "<tr><th>Semester</th><th>Course</th><th>CW1</th><th>MidTerm</th><th>CW2</t
 foreach ($transcript as $semester => $courses) {
     $first = true;
     foreach ($courses as $c) {
-        $rowClass = ($c["Status"] == "Fail") ? "failrow" : "";
+        // below 50 = red, 50-59 = yellow, 60+ = normal
+        if ($c["Total"] < 50) {
+            $rowClass = "redrow";
+        } elseif ($c["Total"] < 60) {
+            $rowClass = "lowrow";
+        } else {
+            $rowClass = "";
+        }
         echo "<tr class='$rowClass'>";
         if ($first) {
             echo "<td class='sem' rowspan='" . count($courses) . "'>$semester</td>";
@@ -318,7 +328,7 @@ foreach ($transcript as $semester => $courses) {
         }
         foreach ($c as $key => $value) {
             if ($key == "Status") {
-                $cls = ($value == "Pass") ? "pass" : "fail";
+                $cls = (strtolower($value) == "pass") ? "pass" : "fail";
                 echo "<td><span class='$cls'>$value</span></td>";
             } else {
                 echo "<td>$value</td>";
